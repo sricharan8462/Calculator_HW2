@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Calculator',
       theme: ThemeData.dark(),
-      home: CalculatorScreen(),
+      home: const CalculatorScreen(),
     );
   }
 }
 
 class CalculatorScreen extends StatefulWidget {
+  const CalculatorScreen({super.key});
   @override
   _CalculatorScreenState createState() => _CalculatorScreenState();
 }
@@ -50,14 +52,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           output = "Error";
         }
       } else {
-        // Prevent consecutive operators (e.g., "5 ++ 3" is not allowed)
         if (RegExp(r'[+\-*/]').hasMatch(value) &&
             input.isNotEmpty &&
             RegExp(r'[+\-*/]$').hasMatch(input)) {
           input = input.substring(0, input.length - 1) + value;
-        }
-        // Prevent multiple decimals in a single number
-        else if (value == ".") {
+        } else if (value == ".") {
           List<String> parts = input.split(RegExp(r'[+\-*/]'));
           String lastPart = parts.isNotEmpty ? parts.last : "";
           if (!lastPart.contains(".")) {
@@ -77,13 +76,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       body: Column(
         children: [
           Expanded(
+            flex: 2,
             child: Container(
               alignment: Alignment.bottomRight,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
               child: Text(
                 input,
                 style: const TextStyle(
-                  fontSize: 48,
+                  fontSize: 50,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -91,13 +91,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             ),
           ),
           Expanded(
+            flex: 1,
             child: Container(
               alignment: Alignment.bottomRight,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Text(
                 output,
                 style: const TextStyle(
-                  fontSize: 44,
+                  fontSize: 48,
                   fontWeight: FontWeight.bold,
                   color: Colors.greenAccent,
                 ),
@@ -107,43 +108,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           const Divider(color: Colors.white),
           Column(
             children: [
-              Row(
-                children: [
-                  buildButton("C", Colors.red),
-                  buildButton("/", Colors.orange),
-                  buildButton("*", Colors.orange),
-                  buildButton("-", Colors.orange),
-                ],
-              ),
-              Row(
-                children: [
-                  buildButton("7", Colors.grey[850]!),
-                  buildButton("8", Colors.grey[850]!),
-                  buildButton("9", Colors.grey[850]!),
-                  buildButton("+", Colors.orange),
-                ],
-              ),
-              Row(
-                children: [
-                  buildButton("4", Colors.grey[850]!),
-                  buildButton("5", Colors.grey[850]!),
-                  buildButton("6", Colors.grey[850]!),
-                  buildButton(".", Colors.orange),
-                ],
-              ),
-              Row(
-                children: [
-                  buildButton("1", Colors.grey[850]!),
-                  buildButton("2", Colors.grey[850]!),
-                  buildButton("3", Colors.grey[850]!),
-                  buildButton("=", Colors.blue),
-                ],
-              ),
-              Row(children: [buildButton("0", Colors.grey[850]!)]),
+              buildButtonRow(["C", "/", "*", "-"], [Colors.red, Colors.orange, Colors.orange, Colors.orange]),
+              buildButtonRow(["7", "8", "9", "+"], [Colors.grey[850]!, Colors.grey[850]!, Colors.grey[850]!, Colors.orange]),
+              buildButtonRow(["4", "5", "6", "."], [Colors.grey[850]!, Colors.grey[850]!, Colors.grey[850]!, Colors.orange]),
+              buildButtonRow(["1", "2", "3", "="], [Colors.grey[850]!, Colors.grey[850]!, Colors.grey[850]!, Colors.blue]),
+              buildButtonRow(["0"], [Colors.grey[850]!]),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildButtonRow(List<String> values, List<Color> colors) {
+    return Row(
+      children: List.generate(values.length, (index) {
+        return buildButton(values[index], colors[index]);
+      }),
     );
   }
 
@@ -152,17 +133,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       child: InkWell(
         onTap: () => onButtonPressed(value),
         child: Container(
-          margin: const EdgeInsets.all(8.0),
-          height: 75,
+          margin: const EdgeInsets.all(10),
+          height: 85,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 5, offset: Offset(2, 2)),
+            ],
           ),
           child: Center(
             child: Text(
               value,
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
