@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Calculator',
+      theme: ThemeData.dark(),
       home: CalculatorScreen(),
     );
   }
@@ -32,17 +33,39 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         output = "";
       } else if (value == "=") {
         try {
-          Parser p = Parser();
-          Expression exp = p.parse(input);
-          ContextModel cm = ContextModel();
-          double eval = exp.evaluate(EvaluationType.REAL, cm);
-          output = eval.toString();
-          input = output;
+          if (input.isNotEmpty && !RegExp(r'[+\-*/]$').hasMatch(input)) {
+            Parser p = Parser();
+            Expression exp = p.parse(input);
+            ContextModel cm = ContextModel();
+            double eval = exp.evaluate(EvaluationType.REAL, cm);
+
+            if (eval.toString() == "Infinity" || eval.toString() == "NaN") {
+              output = "Error";
+            } else {
+              output = eval.toString();
+            }
+            input = output;
+          }
         } catch (e) {
           output = "Error";
         }
       } else {
-        input += value;
+        // Prevent consecutive operators (e.g., "5 ++ 3" is not allowed)
+        if (RegExp(r'[+\-*/]').hasMatch(value) &&
+            input.isNotEmpty &&
+            RegExp(r'[+\-*/]$').hasMatch(input)) {
+          input = input.substring(0, input.length - 1) + value;
+        }
+        // Prevent multiple decimals in a single number
+        else if (value == ".") {
+          List<String> parts = input.split(RegExp(r'[+\-*/]'));
+          String lastPart = parts.isNotEmpty ? parts.last : "";
+          if (!lastPart.contains(".")) {
+            input += value;
+          }
+        } else {
+          input += value;
+        }
       }
     });
   }
@@ -56,31 +79,67 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           Expanded(
             child: Container(
               alignment: Alignment.bottomRight,
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Text(
                 input,
-                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
           Expanded(
             child: Container(
               alignment: Alignment.bottomRight,
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Text(
                 output,
-                style: TextStyle(fontSize: 44, fontWeight: FontWeight.bold, color: Colors.greenAccent),
+                style: const TextStyle(
+                  fontSize: 44,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.greenAccent,
+                ),
               ),
             ),
           ),
-          Divider(color: Colors.white),
+          const Divider(color: Colors.white),
           Column(
             children: [
-              Row(children: [buildButton("7"), buildButton("8"), buildButton("9"), buildButton("/")]),
-              Row(children: [buildButton("4"), buildButton("5"), buildButton("6"), buildButton("*")]),
-              Row(children: [buildButton("1"), buildButton("2"), buildButton("3"), buildButton("-")]),
-              Row(children: [buildButton("0"), buildButton("."), buildButton("="), buildButton("+")]),
-              Row(children: [buildButton("C")]),
+              Row(
+                children: [
+                  buildButton("C", Colors.red),
+                  buildButton("/", Colors.orange),
+                  buildButton("*", Colors.orange),
+                  buildButton("-", Colors.orange),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton("7", Colors.grey[850]!),
+                  buildButton("8", Colors.grey[850]!),
+                  buildButton("9", Colors.grey[850]!),
+                  buildButton("+", Colors.orange),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton("4", Colors.grey[850]!),
+                  buildButton("5", Colors.grey[850]!),
+                  buildButton("6", Colors.grey[850]!),
+                  buildButton(".", Colors.orange),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton("1", Colors.grey[850]!),
+                  buildButton("2", Colors.grey[850]!),
+                  buildButton("3", Colors.grey[850]!),
+                  buildButton("=", Colors.blue),
+                ],
+              ),
+              Row(children: [buildButton("0", Colors.grey[850]!)]),
             ],
           ),
         ],
@@ -88,21 +147,25 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  Widget buildButton(String value) {
+  Widget buildButton(String value, Color color) {
     return Expanded(
       child: InkWell(
         onTap: () => onButtonPressed(value),
         child: Container(
-          margin: EdgeInsets.all(8.0),
+          margin: const EdgeInsets.all(8.0),
           height: 75,
           decoration: BoxDecoration(
-            color: Colors.grey[850],
+            color: color,
             borderRadius: BorderRadius.circular(15),
           ),
           child: Center(
             child: Text(
               value,
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -110,4 +173,3 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 }
-
